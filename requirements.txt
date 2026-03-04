@@ -1,0 +1,13 @@
+streamlit>=1.32,<2
+python-dotenv>=1.0,<2
+requests>=2.31,<3
+beautifulsoup4>=4.12,<5
+langchain==0.3.21
+langchain-core==0.3.59
+langchain-community==0.3.21
+langchain-openai==0.3.21
+openai>=1.0,<2
+tiktoken>=0.7,<1
+faiss-cpu>=1.8,<2
+pymupdf>=1.24,<2
+streamlit-sortables>=0.3,<1
