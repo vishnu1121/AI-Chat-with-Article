@@ -1,137 +1,171 @@
 # AI Chat with Article — URL / PDF RAG Summarizer
 
-A simple **RAG (Retrieval-Augmented Generation)** app that lets you paste an **article URL** (and **direct PDF links** when the text is extractable), then get a clean **summary or Q&A** grounded in the source content.
+A **RAG (Retrieval-Augmented Generation)** app that lets you paste an article URL or direct PDF link, then get a clean summary or Q&A grounded in the source content.
 
-It follows a **Map-Reduce summarization** approach:
-- **MAP:** summarize retrieved chunks individually
-- **REDUCE:** combine those summaries into one final consolidated answer
+Built with **Python · Streamlit · LangChain · FAISS · OpenAI API**
 
-Built with **Python + Streamlit + LangChain + FAISS + OpenAI API**.
-
-> Note: This project is optimized for **text content**. If the page/PDF is mostly **tables, images, or scanned pages**, extraction may be incomplete.
+> **Note:** Optimized for text-heavy content. Pages that are mostly tables, images, or scanned PDFs may extract incompletely.
 
 ---
 
-## What you can do with it
+## Features
 
-- Paste a URL and get a **quick summary**
-- Ask follow-up questions like:
-  - “What are the key takeaways?”
-  - “What does the author claim about X?”
-  - “List the main arguments and evidence”
-- The answer is generated using **retrieved chunks** (not random guessing)
+- Paste any article URL and get an instant **summary**
+- Ask follow-up questions such as:
+  - *"What are the key takeaways?"*
+  - *"What does the author claim about X?"*
+  - *"List the main arguments and evidence"*
+- Answers are grounded in **retrieved source chunks** — not hallucinated
 
 ---
 
 ## Architecture
 
-This repo includes the diagram image already:
-
 ![Architecture](./image.png)
 
-**Pipeline (matches the diagram):**
+**Pipeline:**
 
-User (Browser) → Streamlit UI (`app_UI.py`) → RAG Orchestrator (`rag_core.py`) →  
-Fetch URL/PDF + Extract Text → Clean + Chunk → Embeddings API Call →  
-FAISS Vector Store (persistent) → Retriever (Top-K chunks) →  
-Map-Reduce Summarizer (LLM calls) → Final Answer shown in UI
+```
+User (Browser)
+  → Streamlit UI (app_UI.py)
+  → RAG Orchestrator (rag_core.py)
+  → Fetch URL / PDF + Extract Text
+  → Clean + Chunk
+  → Embeddings API Call
+  → FAISS Vector Store (persistent)
+  → Retriever (Top-K chunks)
+  → Map-Reduce Summarizer (LLM calls)
+  → Final Answer shown in UI
+```
 
-**Supporting files:**
-- `.env` (API key / config)
-- FAISS persistent artifacts (stored locally as `.pkl` files and/or inside `faiss_store/`)
+**Map-Reduce summarization strategy:**
+- **MAP** — the LLM summarizes each retrieved chunk individually
+- **REDUCE** — those summaries are merged into one final consolidated response
 
 ---
 
-## Repo structure (your current files)
+## Repo Structure
 
-```text
+```
 .
 ├── app_UI.py
 ├── rag_core.py
 ├── requirements.txt
 ├── .env
 ├── image.png
-├── faiss_store/                 # folder (may contain persisted artifacts)
-├── vector_index.pkl             # persisted index artifact
-├── faiss_store_openai.pkl       # persisted store artifact
+├── faiss_store/              # persisted FAISS artifacts
+├── vector_index.pkl
+├── faiss_store_openai.pkl
 └── README.md
 ```
-## Clone the repository
-```
+
+---
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
 git clone https://github.com/vishnu1121/AI-Chat-with-Article.git
 cd AI-Chat-with-Article
 ```
-## Create a virtual environment
-### Windows (PowerShell):
-```
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-```
-### macOS / Linux:
-```
+
+### 2. Create a virtual environment
+
+**macOS / Linux:**
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
-## Install dependencies
+
+**Windows (PowerShell):**
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
 ```
+
+### 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
-## Add your API key
-### Create a .env file in the project root (same folder as app_UI.py):
-```
+
+### 4. Add your API key
+
+Create a `.env` file in the project root (same folder as `app_UI.py`):
+
+```env
 OPENAI_API_KEY=your_openai_api_key_here
 ```
-## Run the app
-```
+
+### 5. Run the app
+
+```bash
 streamlit run app_UI.py
 ```
 
+---
 
-### How to use the application (typical flow)
-Paste an article URL (or a direct PDF link if supported by extraction), or you can directly upload it from your local storage
+## Usage
 
-Click the action that loads/processes/indexes the content
+1. Paste an article URL or direct PDF link into the input field (or upload a local file)
+2. Click the button to load, process, and index the content
+3. Ask a question or request a summary
+4. The UI returns a final consolidated answer
 
-Ask your question / request a summary
+---
 
-The UI shows the final consolidated answer
+## How It Works
 
+| Step | What happens |
+|---|---|
+| **Text extraction** | The app fetches and parses content from the URL or PDF |
+| **Chunking** | Extracted text is cleaned and split into smaller chunks for efficient embedding and retrieval |
+| **Embeddings + FAISS** | Chunks are embedded via the OpenAI Embeddings API and stored locally (`vector_index.pkl`, `faiss_store_openai.pkl`) |
+| **Retrieval** | Your query is embedded and FAISS retrieves the Top-K most relevant chunks |
+| **Map-Reduce** | The LLM summarizes each chunk (MAP), then merges them into one answer (REDUCE) |
 
+---
 
-## What happens behind the scenes
-### Text extraction
+## Known Limitations
 
-The app fetches the content and extracts text. This step can vary a lot depending on the website/PDF structure.
+- Works best on **text-heavy** content
+- Web pages with heavy tables or images may extract poorly
+- **Scanned PDFs** (image-based) won't work without adding OCR
+- Some websites block scraping or require a login
+- First run may be slower while the FAISS index is being built
 
-### Chunking
+---
 
-The extracted text is cleaned and split into chunks so the pipeline can:
+## Troubleshooting
 
-embed efficiently
+**"No text extracted" / empty output**
+- Try a different URL — some sites block automated extraction
+- For cleaner results, use a *reader view* or *print view* URL if the site offers one
+- For PDFs, ensure the file is text-based and not a scanned image
 
-retrieve the most relevant parts later
+**Dependency conflicts**
+```bash
+deactivate
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-avoid huge context windows
+**API key not found**
+- Confirm `.env` exists in the same folder as `app_UI.py`
+- Confirm it contains `OPENAI_API_KEY=...`
+- Restart Streamlit after creating or editing `.env`
 
-### Embeddings + FAISS persistence
+---
 
-Chunks are embedded via the embeddings API and stored locally in FAISS.
-That’s why you see files like:
+## Tech Stack
 
-vector_index.pkl
-
-faiss_store_openai.pkl
-
-and/or artifacts inside faiss_store/
-
-### Retrieval (Top-K)
-
-When you ask a question, the query is embedded and FAISS retrieves the Top-K most relevant chunks.
-
-#### Map-Reduce summarization
-
-MAP: the LLM summarizes each retrieved chunk (chunk-level summaries)
-
-REDUCE: the LLM merges those summaries into one final response
-
-This keeps answers structured and reduces long-context messiness.
+| Tool | Role |
+|---|---|
+| Python | Core language |
+| Streamlit | Web UI |
+| LangChain | RAG orchestration |
+| FAISS | Vector store & retrieval |
+| OpenAI API | Embeddings + LLM |
