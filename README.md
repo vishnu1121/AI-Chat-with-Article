@@ -162,7 +162,7 @@ pip install -r requirements.txt
 
 ## Tech Stack
 
-| Tool | Role |
+| Tool | Usage |
 |---|---|
 | Python | Core language |
 | Streamlit | Web UI |
