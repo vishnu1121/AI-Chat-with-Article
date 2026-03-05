@@ -85,3 +85,53 @@ OPENAI_API_KEY=your_openai_api_key_here
 ```
 streamlit run app_UI.py
 ```
+
+
+### How to use the application (typical flow)
+Paste an article URL (or a direct PDF link if supported by extraction), or you can directly upload it from your local storage
+
+Click the action that loads/processes/indexes the content
+
+Ask your question / request a summary
+
+The UI shows the final consolidated answer
+
+
+
+## What happens behind the scenes
+### Text extraction
+
+The app fetches the content and extracts text. This step can vary a lot depending on the website/PDF structure.
+
+### Chunking
+
+The extracted text is cleaned and split into chunks so the pipeline can:
+
+embed efficiently
+
+retrieve the most relevant parts later
+
+avoid huge context windows
+
+### Embeddings + FAISS persistence
+
+Chunks are embedded via the embeddings API and stored locally in FAISS.
+That’s why you see files like:
+
+vector_index.pkl
+
+faiss_store_openai.pkl
+
+and/or artifacts inside faiss_store/
+
+### Retrieval (Top-K)
+
+When you ask a question, the query is embedded and FAISS retrieves the Top-K most relevant chunks.
+
+#### Map-Reduce summarization
+
+MAP: the LLM summarizes each retrieved chunk (chunk-level summaries)
+
+REDUCE: the LLM merges those summaries into one final response
+
+This keeps answers structured and reduces long-context messiness.
